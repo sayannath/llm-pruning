@@ -1,0 +1,12 @@
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.venv/
+*.egg-info/
+outputs/runs/*
+outputs/summaries/*
+outputs/plots/*
+!outputs/runs/.gitkeep
+!outputs/summaries/.gitkeep
+!outputs/plots/.gitkeep

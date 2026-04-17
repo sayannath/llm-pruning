@@ -1,0 +1,24 @@
+seed: 42
+output_root: outputs/runs
+log_level: INFO
+save_predictions: true
+save_pruned_checkpoint: false
+resume: true
+
+device:
+  dtype: bfloat16
+  device_map: auto
+  trust_remote_code: false
+
+evaluation:
+  batch_size: 4
+  max_samples: null
+  subjects: all
+  split: test
+  few_shot: 0
+  scoring_mode: choice_logprob
+
+reporting:
+  save_csv: true
+  save_json: true
+  save_plot: true

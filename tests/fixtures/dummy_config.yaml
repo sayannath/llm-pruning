@@ -1,0 +1,37 @@
+inherits:
+  - ../../configs/base.yaml
+  - ../../configs/pruning/global_unstructured.yaml
+
+output_root: outputs/runs
+save_predictions: true
+resume: false
+
+model:
+  name: dummy
+  hf_id: dummy/local
+  family: dummy
+  chat_template: false
+
+dataset:
+  name: tiny_mmlu
+  hf_id: fixture
+  split: test
+  subjects: all
+  answer_choices: [A, B, C, D]
+  fixture_path: tests/fixtures/tiny_mmlu.jsonl
+
+evaluation:
+  batch_size: 1
+  max_samples: 2
+  subjects: all
+  split: test
+  few_shot: 0
+  scoring_mode: choice_logprob
+
+pruning:
+  method: global_magnitude_unstructured
+  target_module_types: [Linear]
+  target_parameter_names: [weight]
+  exclude_module_name_patterns: [lm_head]
+  prune_bias: false
+  sparsities: [0, 50]

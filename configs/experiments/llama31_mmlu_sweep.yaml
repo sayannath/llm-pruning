@@ -1,0 +1,5 @@
+inherits:
+  - configs/base.yaml
+  - configs/datasets/mmlu.yaml
+  - configs/pruning/global_unstructured.yaml
+  - configs/models/llama31_8b_instruct.yaml

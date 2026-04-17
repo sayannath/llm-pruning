@@ -1,0 +1,6 @@
+dataset:
+  name: mmlu
+  hf_id: cais/mmlu
+  split: test
+  subjects: all
+  answer_choices: [A, B, C, D]

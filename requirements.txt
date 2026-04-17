@@ -1,0 +1,12 @@
+torch
+transformers
+datasets
+accelerate
+pyyaml
+pandas
+numpy
+matplotlib
+tqdm
+huggingface_hub
+safetensors
+codecarbon

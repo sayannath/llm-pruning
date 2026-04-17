@@ -1,0 +1,7 @@
+model:
+  name: qwen3_8b
+  hf_id: Qwen/Qwen3-8B
+  family: qwen
+  chat_template: true
+  generation_kwargs:
+    enable_thinking: false
