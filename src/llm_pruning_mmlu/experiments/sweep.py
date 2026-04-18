@@ -104,6 +104,9 @@ def run_sweep(
             )
             run_logger.info("Starting %s sparsity=%s", model_cfg.name, sparsity)
             model = None
+            tokenizer = None
+            targets = None
+            masks = None
             try:
                 with EmissionsTracker() as tracker:
                     model, tokenizer = load_model_and_tokenizer(model_cfg, config.device)
@@ -117,6 +120,7 @@ def run_sweep(
                     if float(sparsity) > 0:
                         masks = compute_global_magnitude_masks(targets, float(sparsity))
                         apply_masks(targets, masks)
+                        masks = None  # release mask tensors immediately after applying
                     stats = pruning_stats(targets)
                     run_logger.info(
                         "Pruning done: achieved_sparsity=%.4f%% total_params=%d nonzero=%d",
@@ -167,8 +171,14 @@ def run_sweep(
                 if fail_fast:
                     raise
             finally:
+                # Release all tensor-holding locals before GC so GPU memory
+                # is actually freed before the next model load begins.
+                targets = None
+                masks = None
+                tokenizer = None
                 if model is not None:
                     del model
+                    model = None
                 gc.collect()
                 if torch.cuda.is_available():
                     torch.cuda.empty_cache()

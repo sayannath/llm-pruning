@@ -10,3 +10,5 @@ outputs/plots/*
 !outputs/runs/.gitkeep
 !outputs/summaries/.gitkeep
 !outputs/plots/.gitkeep
+logs/
+.claude

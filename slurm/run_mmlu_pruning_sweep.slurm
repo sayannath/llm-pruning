@@ -4,9 +4,9 @@
 #SBATCH --error=slurm/logs/mmlu_prune_sweep-%j.log
 #SBATCH --cpus-per-task=8
 #SBATCH --gres=gpu:1
-#SBATCH --mem=80G
+#SBATCH --mem=160G
 #SBATCH --time=1-00:00:00
-#SBATCH --partition=gpu-l40,gpu-a100,gpu-h100
+#SBATCH --partition=gpu-h100
 #SBATCH --mail-user=sayan.nath@ucalgary.ca
 #SBATCH --mail-type=BEGIN,END,FAIL,TIME_LIMIT
 
