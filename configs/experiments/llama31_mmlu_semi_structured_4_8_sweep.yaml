@@ -1,0 +1,10 @@
+inherits:
+  - configs/base.yaml
+  - configs/datasets/mmlu.yaml
+  - configs/pruning/global_semi_structured_4_8.yaml
+
+model:
+  name: llama31_8b_instruct
+  hf_id: meta-llama/Llama-3.1-8B-Instruct
+  family: llama
+  chat_template: true

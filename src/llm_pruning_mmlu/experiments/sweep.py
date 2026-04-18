@@ -8,16 +8,13 @@ from typing import Any
 
 import torch
 
-from llm_pruning_mmlu.config import ExperimentConfig, load_config_dict, load_model_config
+from llm_pruning_mmlu.config import ExperimentConfig, PruningConfig, load_config_dict, load_model_config
 from llm_pruning_mmlu.data.mmlu import load_mmlu
 from llm_pruning_mmlu.evaluation.runner import evaluate_examples
 from llm_pruning_mmlu.experiments.artifacts import save_run_artifacts
 from llm_pruning_mmlu.experiments.resume import should_skip, sparsity_dir
 from llm_pruning_mmlu.models.loader import load_model_and_tokenizer
-from llm_pruning_mmlu.pruning.apply import apply_masks
-from llm_pruning_mmlu.pruning.magnitude import compute_global_magnitude_masks
-from llm_pruning_mmlu.pruning.stats import pruning_stats
-from llm_pruning_mmlu.pruning.targets import find_pruning_parameters
+from llm_pruning_mmlu.pruning.dispatch import prune_model
 from llm_pruning_mmlu.reporting.plots import plot_sparsity_vs_accuracy
 from llm_pruning_mmlu.reporting.tables import write_combined_results
 from llm_pruning_mmlu.utils.emissions import EmissionsTracker
@@ -34,11 +31,25 @@ def run_id_for_config(config_dict: dict[str, Any]) -> str:
     return f"mmlu_pruning_{stable_hash(config_dict)}"
 
 
+def _pruning_tag(pruning_config: PruningConfig) -> str | None:
+    """Return a filesystem-safe tag that distinguishes run types.
+
+    Unstructured     → None (preserves existing directory layout exactly).
+    Semi-structured  → "{method}__{n}_{m}" e.g. global_magnitude_semi_structured__2_4
+    Structured       → "{method}__{structure}"
+    """
+    if pruning_config.method == "global_magnitude_unstructured":
+        return None
+    if pruning_config.method == "global_magnitude_semi_structured":
+        return f"{pruning_config.method}__{pruning_config.nm_n}_{pruning_config.nm_m}"
+    structure = pruning_config.structure or "unknown"
+    return f"{pruning_config.method}__{structure}"
+
+
 def _annotate_per_prompt_emissions(
     predictions: list[dict[str, Any]],
     emissions: dict[str, Any] | None,
 ) -> None:
-    """Attach proportional emissions to each prediction based on elapsed_s."""
     if not emissions or not emissions.get("emissions_kg_co2") or not predictions:
         return
     total_time = sum(p.get("elapsed_s", 0.0) for p in predictions)
@@ -67,6 +78,7 @@ def run_sweep(
     configure_logging(level=config.log_level)
     _log.info("Run directory: %s", run_dir)
 
+    tag = _pruning_tag(config.pruning)
     metadata = runtime_metadata()
     examples = load_mmlu(
         hf_id=config.dataset.hf_id,
@@ -80,6 +92,8 @@ def run_sweep(
     manifest: dict[str, Any] = {
         "run_name": run_dir.name,
         "config_hash": config_hash,
+        "pruning_method": config.pruning.method,
+        "pruning_structure": config.pruning.structure,
         "start_time": _utcnow(),
         "end_time": None,
         "metadata": metadata,
@@ -92,8 +106,8 @@ def run_sweep(
     results = []
     for model_cfg in _model_configs(config):
         for sparsity in config.pruning.sparsities:
-            out_dir = sparsity_dir(run_dir, model_cfg.name, sparsity)
-            if should_skip(run_dir, model_cfg.name, sparsity, config.resume):
+            out_dir = sparsity_dir(run_dir, model_cfg.name, sparsity, tag)
+            if should_skip(run_dir, model_cfg.name, sparsity, config.resume, tag):
                 _log.info("Skipping %s sparsity=%s (already complete)", model_cfg.name, sparsity)
                 manifest["skipped"].append({"model": model_cfg.name, "sparsity": sparsity})
                 continue
@@ -106,27 +120,24 @@ def run_sweep(
             model = None
             tokenizer = None
             targets = None
-            masks = None
             try:
                 with EmissionsTracker() as tracker:
                     model, tokenizer = load_model_and_tokenizer(model_cfg, config.device)
-                    targets = find_pruning_parameters(
-                        model,
-                        target_module_types=config.pruning.target_module_types,
-                        target_parameter_names=config.pruning.target_parameter_names,
-                        exclude_module_name_patterns=config.pruning.exclude_module_name_patterns,
-                        prune_bias=config.pruning.prune_bias,
-                    )
-                    if float(sparsity) > 0:
-                        masks = compute_global_magnitude_masks(targets, float(sparsity))
-                        apply_masks(targets, masks)
-                        masks = None  # release mask tensors immediately after applying
-                    stats = pruning_stats(targets)
+                    targets, stats = prune_model(model, config.pruning, float(sparsity))
                     run_logger.info(
-                        "Pruning done: achieved_sparsity=%.4f%% total_params=%d nonzero=%d",
+                        "Pruning done: method=%s structure=%s achieved_sparsity=%.4f%% "
+                        "total_params=%d nonzero=%d groups_total=%s groups_pruned=%s "
+                        "nm_n=%s nm_m=%s nm_sparsity=%.2f%%",
+                        stats.get("method"),
+                        stats.get("structure"),
                         stats["sparsity"],
                         stats["total"],
                         stats["nonzero"],
+                        stats.get("num_groups_total", "n/a"),
+                        stats.get("num_groups_pruned", "n/a"),
+                        stats.get("nm_n", "n/a"),
+                        stats.get("nm_m", "n/a"),
+                        stats.get("nm_sparsity", 0.0),
                     )
                     metrics, predictions = evaluate_examples(
                         model, tokenizer, examples, config.dataset.answer_choices
@@ -151,10 +162,38 @@ def run_sweep(
                         "sparsity_achieved": stats["sparsity"],
                         "num_total_target_params": stats["total"],
                         "num_nonzero_target_params": stats["nonzero"],
+                        "pruning_method": stats.get("method", config.pruning.method),
+                        "pruning_structure": stats.get("structure", config.pruning.structure),
                         "seed": config.seed,
                         **metadata,
                     }
                 )
+                # Structured-only fields — present only when groups exist.
+                if stats.get("num_groups_total") is not None:
+                    metrics.update(
+                        {
+                            "group_sparsity_requested": sparsity,
+                            "group_sparsity_achieved": stats.get("group_sparsity"),
+                            "num_groups_total": stats.get("num_groups_total"),
+                            "num_groups_pruned": stats.get("num_groups_pruned"),
+                        }
+                    )
+                # Semi-structured N:M fields — present only for semi-structured runs.
+                if stats.get("nm_n") is not None:
+                    metrics.update(
+                        {
+                            "nm_n": stats["nm_n"],
+                            "nm_m": stats["nm_m"],
+                            "nm_pattern": f"{stats['nm_n']}:{stats['nm_m']}",
+                            "nm_block_dim": stats["block_dim"],
+                            "nm_sparsity_requested": 50.0,
+                            "nm_sparsity_achieved": stats["nm_sparsity"],
+                            "num_nm_blocks_total": stats["num_blocks_total"],
+                            "num_nm_complete_blocks": stats["num_complete_blocks"],
+                            "num_nm_remainder_weights": stats["num_remainder_weights"],
+                            "parameter_sparsity_achieved": stats["sparsity"],
+                        }
+                    )
                 if emissions:
                     metrics["emissions_kg_co2"] = emissions["emissions_kg_co2"]
                 save_run_artifacts(
@@ -171,10 +210,7 @@ def run_sweep(
                 if fail_fast:
                     raise
             finally:
-                # Release all tensor-holding locals before GC so GPU memory
-                # is actually freed before the next model load begins.
                 targets = None
-                masks = None
                 tokenizer = None
                 if model is not None:
                     del model

@@ -1,0 +1,8 @@
+inherits:
+  - configs/base.yaml
+  - configs/datasets/mmlu.yaml
+  - configs/pruning/global_semi_structured_2_4.yaml
+
+models:
+  - configs/models/llama31_8b_instruct.yaml
+  - configs/models/qwen3_8b.yaml

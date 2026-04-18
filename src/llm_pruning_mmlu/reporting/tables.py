@@ -10,7 +10,10 @@ from llm_pruning_mmlu.utils.io import read_json, write_csv, write_jsonl
 def collect_metrics(run_dir: str | Path) -> list[dict]:
     run_dir = Path(run_dir)
     rows = []
-    for path in sorted(run_dir.glob("*/sparsity_*/metrics.json")):
+    # Recursive glob handles both flat unstructured layout
+    # (model/sparsity_020/metrics.json) and tagged structured layout
+    # (model/global_magnitude_structured__mlp_channel/sparsity_020/metrics.json).
+    for path in sorted(run_dir.glob("**/sparsity_*/metrics.json")):
         rows.append(read_json(path))
     return rows
 

@@ -51,6 +51,12 @@ class EvaluationConfig:
 @dataclass(frozen=True)
 class PruningConfig:
     method: str = "global_magnitude_unstructured"
+    structure: str | None = None
+    score: str = "l2_norm"
+    scope: str = "global"
+    nm_n: int | None = None
+    nm_m: int | None = None
+    block_dim: int = 1
     target_module_types: list[str] = field(default_factory=lambda: ["Linear"])
     target_parameter_names: list[str] = field(default_factory=lambda: ["weight"])
     exclude_module_name_patterns: list[str] = field(default_factory=lambda: ["lm_head"])
@@ -124,11 +130,32 @@ def load_model_config(path: str | Path) -> ModelConfig:
     return ModelConfig(**data["model"])
 
 
+_SEMI_STRUCTURED_METHOD = "global_magnitude_semi_structured"
+_VALID_SEMI_STRUCTURED_SPARSITIES = {0, 50}
+
+
+def _validate_pruning_config(pruning_cfg: "PruningConfig") -> None:
+    if pruning_cfg.method == _SEMI_STRUCTURED_METHOD:
+        if pruning_cfg.nm_n is None or pruning_cfg.nm_m is None:
+            raise ConfigError(
+                f"nm_n and nm_m must both be set for method {_SEMI_STRUCTURED_METHOD!r}"
+            )
+        bad = [s for s in pruning_cfg.sparsities if s not in _VALID_SEMI_STRUCTURED_SPARSITIES]
+        if bad:
+            raise ConfigError(
+                f"For {_SEMI_STRUCTURED_METHOD!r}, sparsities must contain only 0 or 50 "
+                f"(the N:M pattern is determined by nm_n/nm_m, not by the sparsity float). "
+                f"Got unexpected values: {bad}"
+            )
+
+
 def parse_config(data: dict[str, Any]) -> ExperimentConfig:
     required = ["seed", "output_root", "device", "dataset", "evaluation", "pruning", "reporting"]
     missing = [key for key in required if key not in data]
     if missing:
         raise ConfigError(f"Missing required config keys: {missing}")
+    pruning_cfg = PruningConfig(**data["pruning"])
+    _validate_pruning_config(pruning_cfg)
     model = ModelConfig(**data["model"]) if "model" in data else None
     return ExperimentConfig(
         seed=int(data["seed"]),
@@ -140,7 +167,7 @@ def parse_config(data: dict[str, Any]) -> ExperimentConfig:
         device=DeviceConfig(**data["device"]),
         dataset=DatasetConfig(**data["dataset"]),
         evaluation=EvaluationConfig(**data["evaluation"]),
-        pruning=PruningConfig(**data["pruning"]),
+        pruning=pruning_cfg,
         reporting=ReportingConfig(**data["reporting"]),
         model=model,
         models=list(data.get("models", [])),

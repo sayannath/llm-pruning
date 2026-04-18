@@ -1,0 +1,10 @@
+inherits:
+  - configs/base.yaml
+  - configs/datasets/mmlu.yaml
+  - configs/pruning/global_semi_structured_4_8.yaml
+
+model:
+  name: qwen3_8b
+  hf_id: Qwen/Qwen3-8B
+  family: qwen
+  chat_template: true

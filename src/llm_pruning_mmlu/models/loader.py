@@ -45,9 +45,61 @@ class DummyCausalLM(torch.nn.Module):
         return SimpleNamespace(logits=logits)
 
 
+class _DummySwiGluMlp(torch.nn.Module):
+    def __init__(self, hidden_size: int, intermediate_size: int):
+        super().__init__()
+        self.gate_proj = torch.nn.Linear(hidden_size, intermediate_size, bias=False)
+        self.up_proj = torch.nn.Linear(hidden_size, intermediate_size, bias=False)
+        self.down_proj = torch.nn.Linear(intermediate_size, hidden_size, bias=False)
+
+    def forward(self, x):
+        import torch.nn.functional as F
+        return self.down_proj(F.silu(self.gate_proj(x)) * self.up_proj(x))
+
+
+class _DummyTransformerBlock(torch.nn.Module):
+    def __init__(self, hidden_size: int, intermediate_size: int):
+        super().__init__()
+        self.mlp = _DummySwiGluMlp(hidden_size, intermediate_size)
+
+    def forward(self, x):
+        return self.mlp(x)
+
+
+class DummyMlpCausalLM(torch.nn.Module):
+    """Tiny transformer-like model with SwiGLU MLP blocks for structured pruning tests."""
+
+    def __init__(
+        self,
+        vocab_size: int = 64,
+        hidden_size: int = 8,
+        intermediate_size: int = 16,
+        num_layers: int = 2,
+    ):
+        super().__init__()
+        self.layers = torch.nn.ModuleList(
+            [_DummyTransformerBlock(hidden_size, intermediate_size) for _ in range(num_layers)]
+        )
+        self.lm_head = torch.nn.Linear(hidden_size, vocab_size, bias=False)
+
+    def forward(self, input_ids):
+        batch, seq_len = input_ids.shape
+        logits = torch.zeros(batch, seq_len, self.lm_head.out_features, device=input_ids.device)
+        logits[..., 2] = 0.1
+        logits[..., 3] = 0.2
+        logits[..., 4] = 0.3
+        logits[..., 5] = 0.0
+        return SimpleNamespace(logits=logits)
+
+
 def load_model_and_tokenizer(model_cfg: ModelConfig, device_cfg: DeviceConfig):
     if model_cfg.hf_id == "dummy/local":
         model = DummyCausalLM()
+        model.eval()
+        return model, DummyTokenizer()
+
+    if model_cfg.hf_id == "dummy/mlp":
+        model = DummyMlpCausalLM()
         model.eval()
         return model, DummyTokenizer()
 

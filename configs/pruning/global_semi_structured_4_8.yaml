@@ -1,0 +1,16 @@
+pruning:
+  method: global_magnitude_semi_structured
+  structure: nm_4_8
+  score: l2_norm
+  scope: local_block
+  nm_n: 4
+  nm_m: 8
+  block_dim: 1
+  target_module_types:
+    - Linear
+  target_parameter_names:
+    - weight
+  exclude_module_name_patterns:
+    - lm_head
+  prune_bias: false
+  sparsities: [0, 50]
