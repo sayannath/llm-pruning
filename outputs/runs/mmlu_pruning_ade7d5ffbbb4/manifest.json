@@ -1,0 +1,119 @@
+{
+  "completed": [
+    {
+      "model": "llama31_8b_instruct",
+      "sparsity": 10
+    },
+    {
+      "model": "llama31_8b_instruct",
+      "sparsity": 20
+    },
+    {
+      "model": "llama31_8b_instruct",
+      "sparsity": 30
+    },
+    {
+      "model": "llama31_8b_instruct",
+      "sparsity": 40
+    },
+    {
+      "model": "llama31_8b_instruct",
+      "sparsity": 50
+    },
+    {
+      "model": "llama31_8b_instruct",
+      "sparsity": 60
+    },
+    {
+      "model": "llama31_8b_instruct",
+      "sparsity": 70
+    },
+    {
+      "model": "llama31_8b_instruct",
+      "sparsity": 80
+    },
+    {
+      "model": "llama31_8b_instruct",
+      "sparsity": 90
+    },
+    {
+      "model": "llama31_8b_instruct",
+      "sparsity": 95
+    },
+    {
+      "model": "llama31_8b_instruct",
+      "sparsity": 99
+    },
+    {
+      "model": "qwen3_8b",
+      "sparsity": 0
+    },
+    {
+      "model": "qwen3_8b",
+      "sparsity": 10
+    },
+    {
+      "model": "qwen3_8b",
+      "sparsity": 20
+    },
+    {
+      "model": "qwen3_8b",
+      "sparsity": 30
+    },
+    {
+      "model": "qwen3_8b",
+      "sparsity": 40
+    },
+    {
+      "model": "qwen3_8b",
+      "sparsity": 50
+    },
+    {
+      "model": "qwen3_8b",
+      "sparsity": 60
+    },
+    {
+      "model": "qwen3_8b",
+      "sparsity": 70
+    },
+    {
+      "model": "qwen3_8b",
+      "sparsity": 80
+    },
+    {
+      "model": "qwen3_8b",
+      "sparsity": 90
+    },
+    {
+      "model": "qwen3_8b",
+      "sparsity": 95
+    },
+    {
+      "model": "qwen3_8b",
+      "sparsity": 99
+    }
+  ],
+  "config_hash": "ade7d5ffbbb4",
+  "end_time": "2026-04-17T22:48:11.978343+00:00",
+  "failed": [],
+  "metadata": {
+    "cuda_available": true,
+    "cuda_device_count": 1,
+    "datasets": "4.5.0",
+    "git_commit": "0615d9fbbefa8cbd64310c83c4ef76934b8d0841",
+    "platform": "Linux-4.18.0-553.89.1.el8_10.x86_64-x86_64-with-glibc2.28",
+    "python": "3.12.11",
+    "timestamp": "2026-04-17T08:48:51.083151+00:00",
+    "torch": "2.9.1+cu128",
+    "transformers": "5.1.0"
+  },
+  "run_dir": "outputs/runs/mmlu_pruning_ade7d5ffbbb4",
+  "run_name": "mmlu_pruning_ade7d5ffbbb4",
+  "skipped": [
+    {
+      "model": "llama31_8b_instruct",
+      "sparsity": 0
+    }
+  ],
+  "start_time": "2026-04-17T08:48:53.080758+00:00"
+}

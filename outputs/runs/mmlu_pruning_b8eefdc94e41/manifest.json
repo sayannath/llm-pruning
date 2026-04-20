@@ -1,0 +1,40 @@
+{
+  "completed": [
+    {
+      "model": "llama31_8b_instruct",
+      "sparsity": 0
+    },
+    {
+      "model": "llama31_8b_instruct",
+      "sparsity": 50
+    },
+    {
+      "model": "qwen3_8b",
+      "sparsity": 0
+    },
+    {
+      "model": "qwen3_8b",
+      "sparsity": 50
+    }
+  ],
+  "config_hash": "b8eefdc94e41",
+  "end_time": "2026-04-18T15:50:31.029702+00:00",
+  "failed": [],
+  "metadata": {
+    "cuda_available": true,
+    "cuda_device_count": 1,
+    "datasets": "4.5.0",
+    "git_commit": "ef942e1edecc0078e334bf4645d75647363a38ac",
+    "platform": "Linux-4.18.0-553.89.1.el8_10.x86_64-x86_64-with-glibc2.28",
+    "python": "3.12.11",
+    "timestamp": "2026-04-18T14:29:45.817326+00:00",
+    "torch": "2.9.1+cu128",
+    "transformers": "5.1.0"
+  },
+  "pruning_method": "global_magnitude_semi_structured",
+  "pruning_structure": "nm_4_8",
+  "run_dir": "outputs/runs/mmlu_pruning_b8eefdc94e41",
+  "run_name": "mmlu_pruning_b8eefdc94e41",
+  "skipped": [],
+  "start_time": "2026-04-18T14:29:47.317024+00:00"
+}

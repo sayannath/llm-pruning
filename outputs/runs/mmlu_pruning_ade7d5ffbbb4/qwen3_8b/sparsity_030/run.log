@@ -1,0 +1,3 @@
+2026-04-17 11:01:29,232 INFO Starting qwen3_8b sparsity=30
+2026-04-17 11:19:28,866 INFO Pruning done: achieved_sparsity=30.0000% total_params=6945767424 nonzero=4862037197
+2026-04-17 11:43:43,119 INFO Evaluation done: accuracy=0.6619 num_samples=14042 emissions_kg_co2=0.1140296883410698

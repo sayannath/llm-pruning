@@ -1,0 +1,3 @@
+best_accuracy,model_name,num_points,worst_accuracy
+0.6533257370744908,llama31_8b_instruct,2,0.3461757584389688
+0.7155675829653896,qwen3_8b,2,0.2553767269619712

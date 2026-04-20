@@ -1,0 +1,52 @@
+dataset:
+  answer_choices:
+  - A
+  - B
+  - C
+  - D
+  hf_id: cais/mmlu
+  name: mmlu
+  split: test
+  subjects: all
+device:
+  device_map: auto
+  dtype: bfloat16
+  trust_remote_code: false
+evaluation:
+  batch_size: 4
+  few_shot: 0
+  max_samples: null
+  scoring_mode: choice_logprob
+  split: test
+  subjects: all
+log_level: INFO
+models:
+- configs/models/llama31_8b_instruct.yaml
+- configs/models/qwen3_8b.yaml
+output_root: outputs/runs
+pruning:
+  block_dim: 1
+  exclude_module_name_patterns:
+  - lm_head
+  method: global_magnitude_semi_structured
+  nm_m: 8
+  nm_n: 4
+  prune_bias: false
+  scope: local_block
+  score: l2_norm
+  sparsities:
+  - 0
+  - 50
+  structure: nm_4_8
+  target_module_types:
+  - Linear
+  target_parameter_names:
+  - weight
+reporting:
+  save_csv: true
+  save_json: true
+  save_plot: true
+resume: true
+save_predictions: true
+save_pruned_checkpoint: false
+seed: 42

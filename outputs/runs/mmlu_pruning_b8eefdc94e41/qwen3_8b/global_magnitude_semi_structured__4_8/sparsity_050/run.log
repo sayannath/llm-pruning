@@ -1,0 +1,4 @@
+2026-04-18 09:27:50,393 INFO Starting qwen3_8b sparsity=50
+2026-04-18 09:28:28,620 INFO Pruning done: method=global_magnitude_semi_structured structure=nm_4_8 achieved_sparsity=50.0000% total_params=6945767424 nonzero=3472883712 groups_total=n/a groups_pruned=n/a nm_n=4 nm_m=8 nm_sparsity=50.00%
+2026-04-18 09:50:30,615 INFO Evaluation done: accuracy=0.2554 num_samples=14042 emissions_kg_co2=0.100661229276076
+2026-04-18 09:50:31,203 INFO Sweep complete: 4 completed, 0 skipped, 0 failed

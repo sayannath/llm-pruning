@@ -1,0 +1,3 @@
+2026-04-18 05:56:28,475 INFO Starting llama31_8b_instruct sparsity=60
+2026-04-18 05:56:45,656 INFO Pruning done: method=global_magnitude_structured structure=mlp_channel achieved_sparsity=48.4615% total_params=6979321856 nonzero=3597037568 groups_total=458752 groups_pruned=275251
+2026-04-18 06:12:19,202 INFO Evaluation done: accuracy=0.2347 num_samples=14042 emissions_kg_co2=0.06262130834056072

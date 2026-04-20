@@ -1,0 +1,4 @@
+2026-04-17 01:23:39,022 INFO Starting llama31_8b_instruct sparsity=10
+2026-04-17 02:48:53,104 INFO Starting llama31_8b_instruct sparsity=10
+2026-04-17 03:08:53,204 INFO Pruning done: achieved_sparsity=10.0000% total_params=6979321856 nonzero=6281389671
+2026-04-17 03:25:34,681 INFO Evaluation done: accuracy=0.6479 num_samples=14042 emissions_kg_co2=0.10179840606677841

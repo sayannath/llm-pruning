@@ -1,0 +1,11 @@
+{
+  "cloud_provider": "",
+  "codecarbon_version": "3.2.2",
+  "country_name": "Canada",
+  "cpu_power_w": 68.66269787513794,
+  "duration_s": 1293.355501735583,
+  "emissions_kg_co2": 0.07799428134045518,
+  "energy_consumed_kwh": 0.12425906115550726,
+  "gpu_power_w": 234.6678133667689,
+  "ram_power_w": 46.0
+}

@@ -1,0 +1,3 @@
+2026-04-18 07:11:48,842 INFO Starting qwen3_8b sparsity=20
+2026-04-18 07:12:08,432 INFO Pruning done: method=global_magnitude_structured structure=mlp_channel achieved_sparsity=15.6521% total_params=6945767424 nonzero=5858611200 groups_total=442368 groups_pruned=88473
+2026-04-18 07:33:36,248 INFO Evaluation done: accuracy=0.2636 num_samples=14042 emissions_kg_co2=0.08088167793917649
