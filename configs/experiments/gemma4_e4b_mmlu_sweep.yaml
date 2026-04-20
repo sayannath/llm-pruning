@@ -2,8 +2,4 @@ inherits:
   - configs/base.yaml
   - configs/datasets/mmlu.yaml
   - configs/pruning/global_unstructured.yaml
-
-models:
-  - configs/models/llama31_8b_instruct.yaml
-  - configs/models/qwen3_8b.yaml
   - configs/models/gemma4_e4b_it.yaml

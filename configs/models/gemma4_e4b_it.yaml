@@ -1,0 +1,5 @@
+model:
+  name: gemma4_e4b_it
+  hf_id: google/gemma-4-E4B-it
+  family: gemma
+  chat_template: true

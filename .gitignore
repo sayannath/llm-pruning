@@ -9,3 +9,4 @@ __pycache__/
 !outputs/plots/.gitkeep
 logs/
 .claude
+wanda/

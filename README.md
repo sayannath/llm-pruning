@@ -2,7 +2,7 @@
 
 Reproducible pruning sweeps for causal LMs evaluated with zero-shot MMLU multiple-choice accuracy. Supports three pruning strategies — global unstructured magnitude, structured MLP-channel, and semi-structured N:M — with carbon emissions tracking via CodeCarbon.
 
-**Models:** Llama-3.1-8B-Instruct · Qwen3-8B  
+**Models:** Llama-3.1-8B-Instruct · Qwen3-8B · Gemma-4-E4B-IT  
 **Benchmark:** MMLU (14,042 test examples, zero-shot, choice log-probability scoring)  
 **Cluster:** H100 80 GB · Canada
 
@@ -288,7 +288,7 @@ scripts/
 configs/
 ├── base.yaml
 ├── datasets/mmlu.yaml
-├── models/llama31_8b_instruct.yaml · qwen3_8b.yaml
+├── models/llama31_8b_instruct.yaml · qwen3_8b.yaml · gemma4_e4b_it.yaml
 ├── pruning/
 │   ├── global_unstructured.yaml
 │   ├── global_structured_mlp.yaml
@@ -299,13 +299,16 @@ configs/
     ├── all_models_mmlu_structured_mlp_sweep.yaml
     ├── all_models_mmlu_semi_structured_2_4_sweep.yaml
     ├── all_models_mmlu_semi_structured_4_8_sweep.yaml
-    └── llama31_*/qwen3_* variants for each method
+    └── llama31_*/qwen3_*/gemma4_e4b_* variants for each method
 
 slurm/
-├── run_mmlu_pruning_sweep.slurm            # unstructured
-├── run_mmlu_structured_sweep.slurm         # structured MLP
-├── run_mmlu_semi_structured_sweep.slurm    # semi-structured (2:4 default)
-└── run_mmlu_semi_structured_full_sweep.slurm  # both 2:4 and 4:8
+├── run_gemma4_unstructured_sweep.slurm         # unstructured, Gemma-4-E4B-IT (1-day wall-time)
+├── run_gemma4_structured_sweep.slurm           # structured MLP, Gemma-4-E4B-IT (12-h wall-time)
+├── run_gemma4_semi_structured_sweep.slurm      # semi-structured 2:4+4:8 job array, Gemma-4-E4B-IT
+├── run_mmlu_pruning_sweep.slurm                # unstructured, Llama+Qwen
+├── run_mmlu_structured_sweep.slurm             # structured MLP, Llama+Qwen
+├── run_mmlu_semi_structured_sweep.slurm        # semi-structured 2:4, Llama+Qwen
+└── run_mmlu_semi_structured_full_sweep.slurm   # semi-structured 2:4+4:8, Llama+Qwen
 
 tests/
 ├── unit/
