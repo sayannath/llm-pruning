@@ -11,7 +11,7 @@
 
 ## 1. Accuracy — Dense vs Pruned
 
-![Accuracy Bar](outputs/plots/semi_structured/accuracy_bar.png)
+![Accuracy Bar](../outputs/plots/semi_structured/accuracy_bar.png)
 
 Both N:M patterns fix sparsity at exactly 50% — the N:M constraint forces precisely N zeros per block of M consecutive weights in each row. The 4:8 pattern consistently outperforms 2:4 on Llama, while both patterns collapse Qwen3 to near-random:
 
@@ -28,7 +28,7 @@ The N:M constraint at 50% sparsity is equivalent to unstructured 50% in terms of
 
 ## 2. Accuracy Drop at 50% Sparsity
 
-![Accuracy Drop](outputs/plots/semi_structured/accuracy_drop.png)
+![Accuracy Drop](../outputs/plots/semi_structured/accuracy_drop.png)
 
 | Pattern | Llama Drop (pp) | Qwen Drop (pp) |
 |---|---|---|
@@ -56,7 +56,7 @@ At equivalent 50% weight sparsity, the full method ranking is:
 
 ## 4. Carbon Emissions
 
-![CO₂ Comparison](outputs/plots/semi_structured/co2_comparison.png)
+![CO₂ Comparison](../outputs/plots/semi_structured/co2_comparison.png)
 
 | Pattern | Model | Dense CO₂ (g) | Pruned CO₂ (g) | Δ |
 |---|---|---|---|---|
@@ -102,7 +102,7 @@ This is a model-specific property that would require per-layer weight distributi
 
 ## 7. Dashboard
 
-![Dashboard](outputs/plots/semi_structured/dashboard.png)
+![Dashboard](../outputs/plots/semi_structured/dashboard.png)
 
 ---
 

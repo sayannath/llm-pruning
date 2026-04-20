@@ -10,7 +10,7 @@
 
 ## 1. Accuracy vs Sparsity
 
-![Accuracy vs Sparsity](outputs/plots/accuracy_vs_sparsity.png)
+![Accuracy vs Sparsity](../outputs/plots/accuracy_vs_sparsity.png)
 
 The headline result is stark: **both models tolerate moderate sparsity surprisingly well, then catastrophically collapse at the 40→50% boundary.**
 
@@ -30,7 +30,7 @@ The degradation in the 0–40% range is gradual and smooth. At 50%, both models 
 
 ## 2. Accuracy Retained
 
-![Accuracy Retained](outputs/plots/accuracy_retained.png)
+![Accuracy Retained](../outputs/plots/accuracy_retained.png)
 
 This view normalises performance against each model's own dense baseline, making the graceful-then-catastrophic pattern clearer. Both curves track each other closely until 40%, then diverge sharply at 50%: **Qwen3 falls further and faster** (38% retained vs 52% for Llama).
 
@@ -50,7 +50,7 @@ The shaded red region in the accuracy plot marks the 40→50% transition zone.
 
 ## 4. Qwen3 Is Stronger but Fragile at the Cliff
 
-![Accuracy vs Carbon Cost](outputs/plots/accuracy_vs_co2.png)
+![Accuracy vs Carbon Cost](../outputs/plots/accuracy_vs_co2.png)
 
 Qwen3-8B outperforms Llama-3.1-8B-Instruct by **6.3 points at baseline** (0.7159 vs 0.6533). This advantage is maintained through 30% sparsity. However:
 
@@ -63,7 +63,7 @@ The scatter plot (above) highlights this: the two Qwen3 baseline-to-40% cluster 
 
 ## 5. Carbon Emissions per Run
 
-![CO₂ per Run](outputs/plots/co2_vs_sparsity.png)
+![CO₂ per Run](../outputs/plots/co2_vs_sparsity.png)
 
 **Carbon cost does not meaningfully scale with sparsity.** Each run costs roughly 90–115 g CO₂eq regardless of whether 0% or 99% of weights are zeroed. This is because:
 
@@ -79,7 +79,7 @@ The scatter plot (above) highlights this: the two Qwen3 baseline-to-40% cluster 
 
 ## 6. Carbon Efficiency
 
-![Carbon Efficiency](outputs/plots/carbon_efficiency.png)
+![Carbon Efficiency](../outputs/plots/carbon_efficiency.png)
 
 Carbon efficiency (accuracy per gram of CO₂) is highest at 0% sparsity and monotonically degrades. The sharp drop at 50% mirrors the accuracy cliff. From a **carbon-per-unit-accuracy perspective, pruning is never beneficial** under this setup — you spend the same carbon to get less accuracy.
 
@@ -89,7 +89,7 @@ However, this metric ignores deployment carbon (inference at scale). If a pruned
 
 ## 7. Power Breakdown
 
-![Power Breakdown](outputs/plots/power_breakdown.png)
+![Power Breakdown](../outputs/plots/power_breakdown.png)
 
 GPU dominates power draw at every sparsity level (~170 W average on mgh4). CPU and RAM contributions are roughly constant at ~50 W and ~45 W respectively. Two observations:
 
@@ -100,7 +100,7 @@ GPU dominates power draw at every sparsity level (~170 W average on mgh4). CPU a
 
 ## 8. Cumulative Carbon Footprint
 
-![Cumulative CO₂](outputs/plots/cumulative_co2.png)
+![Cumulative CO₂](../outputs/plots/cumulative_co2.png)
 
 The full two-model sweep consumed **2,335 g CO₂eq (≈ 2.3 kg)** and **3,720 Wh (3.7 kWh)** of electricity — roughly equivalent to charging a smartphone 300 times or driving an electric car ~15 km.
 
@@ -110,7 +110,7 @@ Steps are even-sized because each sparsity point costs roughly the same to evalu
 
 ## 9. Summary Dashboard
 
-![Dashboard](outputs/plots/dashboard.png)
+![Dashboard](../outputs/plots/dashboard.png)
 
 ---
 

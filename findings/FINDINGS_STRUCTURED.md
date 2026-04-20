@@ -10,7 +10,7 @@
 
 ## 1. Accuracy vs Sparsity
 
-![Accuracy vs Sparsity](outputs/plots/structured/accuracy_vs_sparsity.png)
+![Accuracy vs Sparsity](../outputs/plots/structured/accuracy_vs_sparsity.png)
 
 Structured MLP-channel pruning is far more destructive than unstructured pruning at every comparable sparsity level. Both models hit near-random performance after a single pruning step, but the cliff arrives at different points:
 
@@ -32,7 +32,7 @@ Structured MLP-channel pruning is far more destructive than unstructured pruning
 
 ## 2. Accuracy Retained
 
-![Accuracy Retained](outputs/plots/structured/accuracy_retained.png)
+![Accuracy Retained](../outputs/plots/structured/accuracy_retained.png)
 
 After the cliff, accuracy is frozen at ~34–36% of baseline — well above the random-chance floor (38.5% of Llama's 65.24% baseline ≈ 25.1%), meaning the model retains some residual capability from unmasked layers (attention, embeddings, unmasked MLP weights). Adding more structured pruning beyond the cliff changes nothing: the accuracy curve is flat from 10% onward for Llama and from 20% onward for Qwen.
 
@@ -42,7 +42,7 @@ After the cliff, accuracy is frozen at ~34–36% of baseline — well above the 
 
 ## 3. Group Sparsity vs Achieved Weight Sparsity
 
-![Weight vs Group Sparsity](outputs/plots/structured/weight_vs_group_sparsity.png)
+![Weight vs Group Sparsity](../outputs/plots/structured/weight_vs_group_sparsity.png)
 
 Requesting N% group sparsity achieves only ~0.81×N% weight sparsity. This gap arises because structured groups cover only MLP projection weights (gate_proj, up_proj, down_proj) — approximately 80% of total parameters. The remaining 20% (attention, layer norms, embeddings, lm_head) are never touched, pulling the overall sparsity down below the requested level.
 
@@ -58,7 +58,7 @@ Both models track this ~0.8× scaling consistently — the ratio is purely a fun
 
 ## 4. MLP Channels Pruned
 
-![Groups Pruned](outputs/plots/structured/groups_pruned.png)
+![Groups Pruned](../outputs/plots/structured/groups_pruned.png)
 
 Llama-3.1-8B has **458,752 total MLP channel groups** (32 layers × 14,336 intermediate channels). Qwen3-8B has **442,368** (28 layers × 15,360 intermediate channels). At 10% requested sparsity, ~45,875 Llama channels and ~44,236 Qwen channels are zeroed simultaneously — each removal kills three weight vectors at once (gate row, up row, down column), making the damage three times more concentrated than unstructured pruning of the same number of scalars.
 
@@ -66,7 +66,7 @@ Llama-3.1-8B has **458,752 total MLP channel groups** (32 layers × 14,336 inter
 
 ## 5. Carbon Emissions
 
-![CO₂ vs Sparsity](outputs/plots/structured/co2_vs_sparsity.png)
+![CO₂ vs Sparsity](../outputs/plots/structured/co2_vs_sparsity.png)
 
 Structured pruning uses **20–35% less carbon** per sweep point than unstructured pruning at the same sparsity level. This is not because structured pruning saves compute — it doesn't, in the absence of sparse kernels. The savings come from **evaluation speed**: once the model collapses at the cliff, it generates near-zero activations through pruned channels, slightly shortening the forward pass for each of the 14,042 MMLU examples.
 
@@ -104,7 +104,7 @@ At 10% group sparsity, Llama loses 45,875 complete channels. For Llama's 32-laye
 
 ## 7. Dashboard
 
-![Dashboard](outputs/plots/structured/dashboard.png)
+![Dashboard](../outputs/plots/structured/dashboard.png)
 
 ---
 

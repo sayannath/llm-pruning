@@ -10,13 +10,13 @@
 
 ## Master Dashboard
 
-![Master Dashboard](outputs/plots/sustainability/master_dashboard.png)
+![Master Dashboard](../outputs/plots/sustainability/master_dashboard.png)
 
 ---
 
 ## 1. Carbon Cost at 50% Sparsity
 
-![CO₂ at 50%](outputs/plots/sustainability/co2_at_50pct.png)
+![CO₂ at 50%](../outputs/plots/sustainability/co2_at_50pct.png)
 
 At the common operating point of 50% weight sparsity, structured MLP pruning is the greenest option for the actual evaluation run:
 
@@ -35,7 +35,7 @@ Structured MLP saves ~28% carbon per evaluation run because the forward pass is 
 
 ## 2. Carbon Efficiency (Accuracy per Gram of CO₂)
 
-![Carbon Efficiency](outputs/plots/sustainability/carbon_efficiency.png)
+![Carbon Efficiency](../outputs/plots/sustainability/carbon_efficiency.png)
 
 Carbon efficiency measures how much useful model capability you get per gram of CO₂ spent. The highest score wins from a sustainability standpoint:
 
@@ -54,7 +54,7 @@ The overall picture: **at 50% sparsity, no method improves carbon efficiency eno
 
 ## 3. Sustainability Frontier — Accuracy vs CO₂ Trade-off
 
-![Sustainability Frontier](outputs/plots/sustainability/sustainability_frontier.png)
+![Sustainability Frontier](../outputs/plots/sustainability/sustainability_frontier.png)
 
 This plot shows every (sparsity, method) combination as a point on the accuracy–carbon plane. Points in the upper-left are ideal: high accuracy, low carbon cost.
 
@@ -76,7 +76,7 @@ This plot shows every (sparsity, method) combination as a point on the accuracy�
 
 ## 4. Accuracy Retained vs CO₂ Saved
 
-![Accuracy vs CO₂ Saved](outputs/plots/sustainability/accuracy_vs_co2_saved.png)
+![Accuracy vs CO₂ Saved](../outputs/plots/sustainability/accuracy_vs_co2_saved.png)
 
 This quadrant plots methods against two sustainability axes simultaneously:
 - **X-axis:** CO₂ saved relative to unstructured at the same sparsity (positive = greener)
@@ -98,7 +98,7 @@ For Qwen3:
 
 ## 5. Total Experiment Cost — Full Sweep CO₂ and Energy
 
-![Total Sweep Cost](outputs/plots/sustainability/total_sweep_cost.png)
+![Total Sweep Cost](../outputs/plots/sustainability/total_sweep_cost.png)
 
 The total carbon and energy consumed by each complete experiment sweep:
 
@@ -119,7 +119,7 @@ If repeated across all three new method sweeps, the total research cost of this 
 
 ## 6. GPU Power Draw and Observed Throughput
 
-![GPU and Throughput](outputs/plots/sustainability/gpu_and_throughput.png)
+![GPU and Throughput](../outputs/plots/sustainability/gpu_and_throughput.png)
 
 Observed at 50% sparsity during the MMLU evaluation pass:
 
@@ -140,7 +140,7 @@ Within the mgh5 runs (apples-to-apples):
 
 ## 7. Theoretical GPU Acceleration Potential
 
-![Theoretical Speedup](outputs/plots/sustainability/theoretical_speedup.png)
+![Theoretical Speedup](../outputs/plots/sustainability/theoretical_speedup.png)
 
 This plot shows the **theoretical inference speedup** achievable by each pruning method when the appropriate sparse kernels are activated — which was **not** done in this study. All observed evaluation throughput numbers above are dense-execution baselines.
 

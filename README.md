@@ -17,7 +17,7 @@ Reproducible pruning sweeps for causal LMs evaluated with zero-shot MMLU multipl
 | Semi 2:4 | 28.5% | 24.3% | ~88 g | **2× (cuSPARSELt)** |
 | **Semi 4:8** | **34.6%** | 25.5% | ~91 g | ~1.4× (custom kernel) |
 
-Dense baselines: Llama 65.3% · Qwen 71.6%. See [FINDINGS.md](FINDINGS.md), [FINDINGS_STRUCTURED.md](FINDINGS_STRUCTURED.md), [FINDINGS_SEMI_STRUCTURED.md](FINDINGS_SEMI_STRUCTURED.md), [FINDINGS_SUSTAINABILITY.md](FINDINGS_SUSTAINABILITY.md).
+Dense baselines: Llama 65.3% · Qwen 71.6%. See [FINDINGS_UNSTRUCTURED.md](findings/FINDINGS_UNSTRUCTURED.md), [FINDINGS_STRUCTURED.md](findings/FINDINGS_STRUCTURED.md), [FINDINGS_SEMI_STRUCTURED.md](findings/FINDINGS_SEMI_STRUCTURED.md), [FINDINGS_SUSTAINABILITY.md](findings/FINDINGS_SUSTAINABILITY.md).
 
 ---
 
@@ -335,10 +335,10 @@ tests/
 
 | Report | Description |
 |---|---|
-| [FINDINGS.md](FINDINGS.md) | Global unstructured magnitude pruning — accuracy cliff at 50%, carbon analysis |
-| [FINDINGS_STRUCTURED.md](FINDINGS_STRUCTURED.md) | Structured MLP-channel pruning — cliff at 10% (Llama) / 20% (Qwen), group vs weight sparsity gap |
-| [FINDINGS_SEMI_STRUCTURED.md](FINDINGS_SEMI_STRUCTURED.md) | Semi-structured 2:4 and 4:8 pruning — 4:8 matches unstructured on Llama, production deployment paths |
-| [FINDINGS_SUSTAINABILITY.md](FINDINGS_SUSTAINABILITY.md) | Cross-method sustainability and GPU acceleration — carbon frontier, theoretical speedups, deployment recommendations |
+| [FINDINGS_UNSTRUCTURED.md](findings/FINDINGS_UNSTRUCTURED.md) | Global unstructured magnitude pruning — accuracy cliff at 50%, carbon analysis |
+| [FINDINGS_STRUCTURED.md](findings/FINDINGS_STRUCTURED.md) | Structured MLP-channel pruning — cliff at 10% (Llama) / 20% (Qwen), group vs weight sparsity gap |
+| [FINDINGS_SEMI_STRUCTURED.md](findings/FINDINGS_SEMI_STRUCTURED.md) | Semi-structured 2:4 and 4:8 pruning — 4:8 matches unstructured on Llama, production deployment paths |
+| [FINDINGS_SUSTAINABILITY.md](findings/FINDINGS_SUSTAINABILITY.md) | Cross-method sustainability and GPU acceleration — carbon frontier, theoretical speedups, deployment recommendations |
 
 ---
 
