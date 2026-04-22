@@ -57,6 +57,7 @@ class PruningConfig:
     nm_n: int | None = None
     nm_m: int | None = None
     block_dim: int = 1
+    calibration_samples: int = 128
     target_module_types: list[str] = field(default_factory=lambda: ["Linear"])
     target_parameter_names: list[str] = field(default_factory=lambda: ["weight"])
     exclude_module_name_patterns: list[str] = field(default_factory=lambda: ["lm_head"])
@@ -130,20 +131,20 @@ def load_model_config(path: str | Path) -> ModelConfig:
     return ModelConfig(**data["model"])
 
 
-_SEMI_STRUCTURED_METHOD = "global_magnitude_semi_structured"
+_NM_METHODS = {"global_magnitude_semi_structured", "wanda_semi_structured"}
 _VALID_SEMI_STRUCTURED_SPARSITIES = {0, 50}
 
 
 def _validate_pruning_config(pruning_cfg: "PruningConfig") -> None:
-    if pruning_cfg.method == _SEMI_STRUCTURED_METHOD:
+    if pruning_cfg.method in _NM_METHODS:
         if pruning_cfg.nm_n is None or pruning_cfg.nm_m is None:
             raise ConfigError(
-                f"nm_n and nm_m must both be set for method {_SEMI_STRUCTURED_METHOD!r}"
+                f"nm_n and nm_m must both be set for method {pruning_cfg.method!r}"
             )
         bad = [s for s in pruning_cfg.sparsities if s not in _VALID_SEMI_STRUCTURED_SPARSITIES]
         if bad:
             raise ConfigError(
-                f"For {_SEMI_STRUCTURED_METHOD!r}, sparsities must contain only 0 or 50 "
+                f"For {pruning_cfg.method!r}, sparsities must contain only 0 or 50 "
                 f"(the N:M pattern is determined by nm_n/nm_m, not by the sparsity float). "
                 f"Got unexpected values: {bad}"
             )

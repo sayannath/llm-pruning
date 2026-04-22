@@ -1,8 +1,10 @@
 inherits:
   - configs/base.yaml
   - configs/datasets/mmlu.yaml
-  - configs/pruning/global_structured_mlp.yaml
+  - configs/pruning/global_structured_mlp_sft.yaml
   - configs/models/llama31_8b_instruct.yaml
 
 pruning:
-  sparsities: [40, 50, 60, 70, 0, 10, 20, 30]
+  sparsities: [0, 10, 20, 30]
+
+output_root: outputs/sft_runs

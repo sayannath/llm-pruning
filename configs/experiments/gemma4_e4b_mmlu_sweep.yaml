@@ -3,3 +3,6 @@ inherits:
   - configs/datasets/mmlu.yaml
   - configs/pruning/global_unstructured.yaml
   - configs/models/gemma4_e4b_it.yaml
+
+evaluation:
+  scoring_mode: generation

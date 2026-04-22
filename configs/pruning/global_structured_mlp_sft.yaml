@@ -1,0 +1,13 @@
+pruning:
+  method: global_magnitude_structured
+  structure: mlp_channel
+  score: l2_norm
+  scope: global
+  target_module_types:
+    - Linear
+  target_parameter_names:
+    - weight
+  exclude_module_name_patterns:
+    - lm_head
+  prune_bias: false
+  sparsities: [40, 50, 0, 10, 20, 30]

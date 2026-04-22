@@ -10,3 +10,6 @@ __pycache__/
 logs/
 .claude
 wanda/
+outputs/runs/
+wandb/
+outputs/sft_runs/

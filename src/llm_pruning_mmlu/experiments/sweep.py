@@ -123,7 +123,7 @@ def run_sweep(
             try:
                 with EmissionsTracker() as tracker:
                     model, tokenizer = load_model_and_tokenizer(model_cfg, config.device)
-                    targets, stats = prune_model(model, config.pruning, float(sparsity))
+                    targets, stats, _ = prune_model(model, config.pruning, float(sparsity))
                     run_logger.info(
                         "Pruning done: method=%s structure=%s achieved_sparsity=%.4f%% "
                         "total_params=%d nonzero=%d groups_total=%s groups_pruned=%s "
@@ -140,7 +140,8 @@ def run_sweep(
                         stats.get("nm_sparsity", 0.0),
                     )
                     metrics, predictions = evaluate_examples(
-                        model, tokenizer, examples, config.dataset.answer_choices
+                        model, tokenizer, examples, config.dataset.answer_choices,
+                        scoring_mode=config.evaluation.scoring_mode,
                     )
 
                 emissions = tracker.result

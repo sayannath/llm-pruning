@@ -1,0 +1,43 @@
+finetuning:
+  method: lora
+
+  train_dataset:
+    hf_id: cais/mmlu
+    split: auxiliary_train
+    max_samples: 10000
+
+  validation_dataset:
+    hf_id: cais/mmlu
+    split: validation
+    max_samples: 512
+
+  max_seq_length: 1024
+  epochs: 1
+  learning_rate: 0.0002
+  batch_size: 1
+  gradient_accumulation_steps: 16
+  warmup_ratio: 0.03
+  weight_decay: 0.0
+  bf16: true
+  gradient_checkpointing: true
+
+  lora:
+    r: 16
+    alpha: 32
+    dropout: 0.05
+    target_modules:
+      - q_proj
+      - k_proj
+      - v_proj
+      - o_proj
+      - gate_proj
+      - up_proj
+      - down_proj
+
+  mask_policy:
+    preserve_base_masks: true
+    mask_lora_pruned_channels: false
+
+  wandb:
+    project: sparse-sft
+    enabled: true

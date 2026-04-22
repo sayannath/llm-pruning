@@ -356,3 +356,11 @@ python scripts/run_sweep.py \
   --config configs/experiments/all_models_mmlu_structured_mlp_sweep.yaml \
   --no-resume
 ```
+
+## TODO experiments after semi-stuctured (magnitude) completes
+
+```bash
+sbatch slurm/sparse_sft/semi_structured/run_llama31_wanda_2_4_sft.slurm
+sbatch slurm/sparse_sft/semi_structured/run_qwen3_wanda_2_4_sft.slurm
+sbatch slurm/sparse_sft/semi_structured/run_gemma4_wanda_2_4_sft.slurm
+```

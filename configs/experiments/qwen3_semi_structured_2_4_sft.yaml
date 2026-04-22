@@ -2,7 +2,8 @@ inherits:
   - configs/base.yaml
   - configs/datasets/mmlu.yaml
   - configs/pruning/global_semi_structured_2_4.yaml
-  - configs/models/gemma4_e4b_it.yaml
 
-evaluation:
-  scoring_mode: generation
+output_root: outputs/sft_runs
+
+models:
+  - configs/models/qwen3_8b.yaml

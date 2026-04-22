@@ -1,0 +1,17 @@
+pruning:
+  method: wanda_semi_structured
+  structure: nm_2_4
+  score: wanda
+  scope: local_block
+  nm_n: 2
+  nm_m: 4
+  block_dim: 1
+  calibration_samples: 128
+  target_module_types:
+    - Linear
+  target_parameter_names:
+    - weight
+  exclude_module_name_patterns:
+    - lm_head
+  prune_bias: false
+  sparsities: [0, 50]

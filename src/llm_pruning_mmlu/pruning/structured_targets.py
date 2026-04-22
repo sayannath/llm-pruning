@@ -21,6 +21,26 @@ class StructuredGroup:
     slices: tuple[TensorSlice, ...]
 
 
+def _unwrap_linear(
+    parent: torch.nn.Module, attr: str
+) -> tuple[torch.nn.Linear | None, str]:
+    """Return the Linear at parent.attr and its path suffix.
+
+    Handles models like Gemma4 where projections are wrapped in a custom class
+    (e.g. Gemma4ClippableLinear) that holds a plain Linear at .linear.  The
+    returned suffix is used to build parameter names that match what
+    find_pruning_parameters produces, e.g. "gate_proj.linear" instead of
+    "gate_proj" for wrapped models.
+    """
+    module = getattr(parent, attr, None)
+    if isinstance(module, torch.nn.Linear):
+        return module, attr
+    inner = getattr(module, "linear", None)
+    if isinstance(inner, torch.nn.Linear):
+        return inner, f"{attr}.linear"
+    return None, attr
+
+
 def discover_mlp_channel_groups(model: torch.nn.Module) -> list[StructuredGroup]:
     """Discover SwiGLU MLP channel groups across all transformer layers.
 
@@ -35,14 +55,10 @@ def discover_mlp_channel_groups(model: torch.nn.Module) -> list[StructuredGroup]
     groups: list[StructuredGroup] = []
 
     for module_name, module in model.named_modules():
-        gate = getattr(module, "gate_proj", None)
-        up = getattr(module, "up_proj", None)
-        down = getattr(module, "down_proj", None)
-        if not (
-            isinstance(gate, torch.nn.Linear)
-            and isinstance(up, torch.nn.Linear)
-            and isinstance(down, torch.nn.Linear)
-        ):
+        gate, gate_suffix = _unwrap_linear(module, "gate_proj")
+        up, up_suffix = _unwrap_linear(module, "up_proj")
+        down, down_suffix = _unwrap_linear(module, "down_proj")
+        if not (gate and up and down):
             continue
 
         intermediate_size = gate.weight.shape[0]
@@ -57,9 +73,9 @@ def discover_mlp_channel_groups(model: torch.nn.Module) -> list[StructuredGroup]
                 f"intermediate_size {intermediate_size}"
             )
 
-        gate_name = f"{module_name}.gate_proj.weight"
-        up_name = f"{module_name}.up_proj.weight"
-        down_name = f"{module_name}.down_proj.weight"
+        gate_name = f"{module_name}.{gate_suffix}.weight"
+        up_name = f"{module_name}.{up_suffix}.weight"
+        down_name = f"{module_name}.{down_suffix}.weight"
 
         for j in range(intermediate_size):
             groups.append(

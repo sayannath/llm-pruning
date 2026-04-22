@@ -1,0 +1,9 @@
+inherits:
+  - configs/base.yaml
+  - configs/datasets/mmlu.yaml
+  - configs/pruning/global_wanda_semi_structured_2_4.yaml
+
+output_root: outputs/sft_runs
+
+models:
+  - configs/models/qwen3_8b.yaml

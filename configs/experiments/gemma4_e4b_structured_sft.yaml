@@ -1,8 +1,10 @@
 inherits:
   - configs/base.yaml
   - configs/datasets/mmlu.yaml
-  - configs/pruning/global_structured_mlp.yaml
+  - configs/pruning/global_structured_mlp_sft.yaml
   - configs/models/gemma4_e4b_it.yaml
+
+output_root: outputs/sft_runs
 
 evaluation:
   scoring_mode: generation
