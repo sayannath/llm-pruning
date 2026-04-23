@@ -3,7 +3,7 @@
 #SBATCH --output=slurm/logs/gemma4_2_4_sft-%j.log
 #SBATCH --error=slurm/logs/gemma4_2_4_sft-%j.log
 #SBATCH --cpus-per-task=8
-#SBATCH --gres=gpu:2
+#SBATCH --gres=gpu:1
 #SBATCH --mem=160G
 #SBATCH --time=1-00:00:00
 #SBATCH --partition=gpu-l40

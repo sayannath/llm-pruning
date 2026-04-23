@@ -17,14 +17,29 @@ def choice_token_ids(tokenizer, choices: list[str] | None = None) -> dict[str, l
     return ids
 
 
-def _tokenize_prompt(tokenizer, raw_prompt: str) -> torch.Tensor:
-    """Return prompt token IDs as a [1, L] tensor.
+def _prepare_prompt(tokenizer, raw_prompt: str) -> tuple[str, bool]:
+    """Return (prompt_string, add_special_tokens) for log-prob scoring.
 
-    When the tokenizer has a chat template, use apply_chat_template with
-    tokenize=True so that model-specific special tokens (e.g. Gemma4's
-    <|turn> / <turn|> delimiters) are correctly included.  Re-tokenizing
-    the template string with add_special_tokens=False silently drops those
-    tokens for Gemma4, producing a truncated context that breaks scoring.
+    Uses tokenize=False so the caller re-tokenizes the string — this path
+    works correctly for Llama3.1 and Qwen3 whose tokenizers handle their
+    own special tokens even with add_special_tokens=False.
+    """
+    if getattr(tokenizer, "chat_template", None) is not None:
+        formatted = tokenizer.apply_chat_template(
+            [{"role": "user", "content": raw_prompt}],
+            tokenize=False,
+            add_generation_prompt=True,
+        )
+        return formatted, False
+    return raw_prompt, True
+
+
+def _tokenize_prompt_for_generation(tokenizer, raw_prompt: str) -> torch.Tensor:
+    """Return prompt token IDs for generation-based scoring.
+
+    Uses apply_chat_template with tokenize=True to correctly handle
+    tokenizers (e.g. Gemma4) whose special tokens are silently dropped
+    when the template string is re-tokenized with add_special_tokens=False.
     """
     if getattr(tokenizer, "chat_template", None) is not None:
         ids = tokenizer.apply_chat_template(
@@ -33,7 +48,6 @@ def _tokenize_prompt(tokenizer, raw_prompt: str) -> torch.Tensor:
             add_generation_prompt=True,
             return_tensors="pt",
         )
-        # apply_chat_template may return a tensor or a BatchEncoding
         if not isinstance(ids, torch.Tensor):
             ids = ids["input_ids"]
         return ids
@@ -41,7 +55,12 @@ def _tokenize_prompt(tokenizer, raw_prompt: str) -> torch.Tensor:
 
 
 @torch.no_grad()
-def score_choice(model, tokenizer, prompt_ids: torch.Tensor, choice: str) -> float:
+def score_choice(
+    model, tokenizer, prompt: str, choice: str, add_special_tokens: bool = True
+) -> float:
+    prompt_ids = tokenizer(
+        prompt, return_tensors="pt", add_special_tokens=add_special_tokens
+    )["input_ids"]
     choice_ids = tokenizer(
         " " + choice, return_tensors="pt", add_special_tokens=False
     )["input_ids"]
@@ -56,8 +75,6 @@ def score_choice(model, tokenizer, prompt_ids: torch.Tensor, choice: str) -> flo
     start = max(prompt_len - 1, 0)
     n_choice_tokens = choice_ids.shape[1]
     raw = float(token_log_probs[:, start:].sum().item())
-    # Normalise by token count so choices with different tokenisations are
-    # compared on the same scale.
     return raw / max(n_choice_tokens, 1)
 
 
@@ -96,7 +113,7 @@ def predict_example_generation(
     choices = choices or CHOICES
     raw_prompt = format_mmlu_prompt(example["question"], example["choices"])
     device = next(model.parameters()).device
-    prompt_ids = _tokenize_prompt(tokenizer, raw_prompt).to(device)
+    prompt_ids = _tokenize_prompt_for_generation(tokenizer, raw_prompt).to(device)
     out = model.generate(
         prompt_ids,
         max_new_tokens=30,
@@ -124,9 +141,9 @@ def predict_example_generation(
 def predict_example(model, tokenizer, example: dict, choices: list[str] | None = None) -> dict:
     choices = choices or CHOICES
     raw_prompt = format_mmlu_prompt(example["question"], example["choices"])
-    prompt_ids = _tokenize_prompt(tokenizer, raw_prompt)
+    prompt, add_special_tokens = _prepare_prompt(tokenizer, raw_prompt)
     scores = {
-        choice: score_choice(model, tokenizer, prompt_ids, choice)
+        choice: score_choice(model, tokenizer, prompt, choice, add_special_tokens)
         for choice in choices
     }
     pred = max(scores.items(), key=lambda item: item[1])[0]
