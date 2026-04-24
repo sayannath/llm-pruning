@@ -2,9 +2,9 @@
 #SBATCH --job-name=gemma4-wanda-2-4-sft
 #SBATCH --output=slurm/logs/gemma4_wanda_2_4_sft-%j.log
 #SBATCH --error=slurm/logs/gemma4_wanda_2_4_sft-%j.log
-#SBATCH --cpus-per-task=8
-#SBATCH --gres=gpu:2
-#SBATCH --mem=160G
+#SBATCH --cpus-per-task=4
+#SBATCH --gres=gpu:1
+#SBATCH --mem=16G
 #SBATCH --time=1-00:00:00
 #SBATCH --partition=gpu-l40
 #SBATCH --mail-user=sayan.nath@ucalgary.ca

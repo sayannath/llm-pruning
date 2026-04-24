@@ -14,8 +14,8 @@ finetuning:
   max_seq_length: 1024
   epochs: 1
   learning_rate: 0.0002
-  batch_size: 1
-  gradient_accumulation_steps: 16
+  batch_size: 2
+  gradient_accumulation_steps: 8
   warmup_ratio: 0.03
   weight_decay: 0.0
   bf16: true
