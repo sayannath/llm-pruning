@@ -12,7 +12,7 @@
 
 # Global unstructured magnitude pruning sweep — Gemma-4-E4B-IT
 #   Sparsity: 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 95, 99%  (12 points)
-#   Est. time: ~35 min/run × 12 = ~7 h  → wall-time 1 day
+#   Est. time: ~10 min/run × 12 = ~2 h  → wall-time 1 day (constrained_generation mode)
 #
 # Submit:
 #   sbatch slurm/run_gemma4_unstructured_sweep.slurm

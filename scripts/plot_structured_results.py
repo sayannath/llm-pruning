@@ -13,32 +13,45 @@ import matplotlib.gridspec as gridspec
 import numpy as np
 import pandas as pd
 
-COLORS = {"llama31_8b_instruct": "#4C72B0", "qwen3_8b": "#DD8452"}
-LABELS = {"llama31_8b_instruct": "Llama-3.1-8B-Instruct", "qwen3_8b": "Qwen3-8B"}
+COLORS = {
+    "llama31_8b_instruct": "#4C72B0",
+    "qwen3_8b": "#DD8452",
+    "gemma4_e4b_it": "#55A868",
+}
+LABELS = {
+    "llama31_8b_instruct": "Llama-3.1-8B-Instruct",
+    "qwen3_8b": "Qwen3-8B",
+    "gemma4_e4b_it": "Gemma-4-E4B-IT",
+}
 CHANCE = 0.25
 
 # ---------------------------------------------------------------------------
 # Loaders
 # ---------------------------------------------------------------------------
 
-def load_structured(run_dir: Path) -> pd.DataFrame:
+def _as_paths(run_dirs: Path | list[Path]) -> list[Path]:
+    return run_dirs if isinstance(run_dirs, list) else [run_dirs]
+
+
+def load_structured(run_dirs: Path | list[Path]) -> pd.DataFrame:
     rows = []
-    for mpath in sorted(run_dir.glob("**/sparsity_*/metrics.json")):
-        m = json.load(open(mpath))
-        if m.get("pruning_method") != "global_magnitude_structured":
-            continue
-        epath = mpath.parent / "emissions.json"
-        e = json.load(open(epath)) if epath.exists() else {}
-        rows.append({
-            "model": m["model_name"],
-            "sparsity_requested": m["sparsity_requested"],
-            "sparsity_achieved": m["sparsity_achieved"],
-            "accuracy": m["accuracy"],
-            "co2_kg": m.get("emissions_kg_co2", e.get("emissions_kg_co2", 0.0)),
-            "num_groups_total": m.get("num_groups_total"),
-            "num_groups_pruned": m.get("num_groups_pruned", 0),
-            "group_sparsity": m.get("group_sparsity_achieved", 0.0),
-        })
+    for run_dir in _as_paths(run_dirs):
+        for mpath in sorted(run_dir.glob("**/sparsity_*/metrics.json")):
+            m = json.load(open(mpath))
+            if m.get("pruning_method") != "global_magnitude_structured":
+                continue
+            epath = mpath.parent / "emissions.json"
+            e = json.load(open(epath)) if epath.exists() else {}
+            rows.append({
+                "model": m["model_name"],
+                "sparsity_requested": m["sparsity_requested"],
+                "sparsity_achieved": m["sparsity_achieved"],
+                "accuracy": m["accuracy"],
+                "co2_kg": m.get("emissions_kg_co2", e.get("emissions_kg_co2", 0.0)),
+                "num_groups_total": m.get("num_groups_total"),
+                "num_groups_pruned": m.get("num_groups_pruned", 0),
+                "group_sparsity": m.get("group_sparsity_achieved", 0.0),
+            })
     df = pd.DataFrame(rows).sort_values(["model", "sparsity_requested"]).reset_index(drop=True)
     for model in df["model"].unique():
         mask = df["model"] == model
@@ -48,25 +61,26 @@ def load_structured(run_dir: Path) -> pd.DataFrame:
     return df
 
 
-def load_semi_structured(run_dirs: dict[str, Path]) -> pd.DataFrame:
-    """Load semi-structured runs; run_dirs maps pattern label → run dir."""
+def load_semi_structured(run_dirs: dict[str, Path | list[Path]]) -> pd.DataFrame:
+    """Load semi-structured runs; run_dirs maps pattern label to one or more run dirs."""
     rows = []
-    for pattern, run_dir in run_dirs.items():
-        for mpath in sorted(run_dir.glob("**/sparsity_*/metrics.json")):
-            m = json.load(open(mpath))
-            epath = mpath.parent / "emissions.json"
-            e = json.load(open(epath)) if epath.exists() else {}
-            rows.append({
-                "pattern": pattern,
-                "model": m["model_name"],
-                "sparsity_requested": m["sparsity_requested"],
-                "sparsity_achieved": m["sparsity_achieved"],
-                "accuracy": m["accuracy"],
-                "nm_n": m.get("nm_n"),
-                "nm_m": m.get("nm_m"),
-                "nm_sparsity": m.get("nm_sparsity_achieved", 0.0),
-                "co2_kg": m.get("emissions_kg_co2", e.get("emissions_kg_co2", 0.0)),
-            })
+    for pattern, pattern_dirs in run_dirs.items():
+        for run_dir in _as_paths(pattern_dirs):
+            for mpath in sorted(run_dir.glob("**/sparsity_*/metrics.json")):
+                m = json.load(open(mpath))
+                epath = mpath.parent / "emissions.json"
+                e = json.load(open(epath)) if epath.exists() else {}
+                rows.append({
+                    "pattern": pattern,
+                    "model": m["model_name"],
+                    "sparsity_requested": m["sparsity_requested"],
+                    "sparsity_achieved": m["sparsity_achieved"],
+                    "accuracy": m["accuracy"],
+                    "nm_n": m.get("nm_n"),
+                    "nm_m": m.get("nm_m"),
+                    "nm_sparsity": m.get("nm_sparsity_achieved", 0.0),
+                    "co2_kg": m.get("emissions_kg_co2", e.get("emissions_kg_co2", 0.0)),
+                })
     df = pd.DataFrame(rows).sort_values(["pattern", "model", "sparsity_requested"]).reset_index(drop=True)
     for (pattern, model), grp in df.groupby(["pattern", "model"]):
         mask = (df["pattern"] == pattern) & (df["model"] == model)
@@ -243,8 +257,9 @@ def _pattern_label(pattern: str, model: str) -> str:
 
 def plot_semi_accuracy_bar(df: pd.DataFrame, out: Path) -> None:
     """Bar chart comparing baseline vs pruned accuracy for both patterns and models."""
-    fig, axes = plt.subplots(1, 2, figsize=(13, 5), sharey=True)
     models = sorted(df["model"].unique())
+    fig, axes = plt.subplots(1, len(models), figsize=(6.5 * len(models), 5), sharey=True)
+    axes = np.atleast_1d(axes)
     patterns = sorted(df["pattern"].unique())
     x = np.arange(len(patterns))
     width = 0.35
@@ -313,8 +328,9 @@ def plot_semi_accuracy_drop(df: pd.DataFrame, out: Path) -> None:
 
 def plot_semi_co2_comparison(df: pd.DataFrame, out: Path) -> None:
     """CO2 comparison: dense vs pruned, both patterns."""
-    fig, axes = plt.subplots(1, 2, figsize=(13, 5), sharey=True)
     models = sorted(df["model"].unique())
+    fig, axes = plt.subplots(1, len(models), figsize=(6.5 * len(models), 5), sharey=True)
+    axes = np.atleast_1d(axes)
     patterns = sorted(df["pattern"].unique())
     x = np.arange(len(patterns))
     width = 0.35
@@ -351,8 +367,13 @@ def plot_semi_dashboard(df: pd.DataFrame, out: Path) -> None:
             ax1.text(x_pos, row["accuracy"] + 0.005, f"{row['accuracy']:.3f}",
                      ha="center", va="bottom", fontsize=8)
     ax1.axhline(CHANCE, color="gray", linestyle="--", linewidth=1, label="Random")
-    ax1.set_xticks([0, 1, 3, 4])
-    ax1.set_xticklabels(["L 2:4", "L 4:8", "Q 2:4", "Q 4:8"], fontsize=9)
+    ax1.set_xticks([i * 3 + j for i in range(len(sorted(pruned50["model"].unique()))) for j in range(2)])
+    ax1.set_xticklabels(
+        [f"{LABELS[m].split('-')[0]} {p}" for m in sorted(pruned50["model"].unique()) for p in sorted(pruned50["pattern"].unique())],
+        fontsize=8,
+        rotation=20,
+        ha="right",
+    )
     ax1.set_ylabel("MMLU Accuracy"); ax1.set_title("A — Accuracy at 50% Sparsity", fontweight="bold")
     ax1.set_ylim(0.15, 0.45); ax1.grid(True, alpha=0.3, axis="y")
 
@@ -375,8 +396,13 @@ def plot_semi_dashboard(df: pd.DataFrame, out: Path) -> None:
                      ha="center", va="bottom", fontsize=8)
     ax2.axhline(100, color="gray", linestyle="--", linewidth=1, label="Dense baseline")
     ax2.axhline(50, color="red", linestyle=":", linewidth=1, label="50% retained")
-    ax2.set_xticks([0, 1, 3, 4])
-    ax2.set_xticklabels(["L 2:4", "L 4:8", "Q 2:4", "Q 4:8"], fontsize=9)
+    ax2.set_xticks([i * 3 + j for i in range(len(sorted(pruned_r["model"].unique()))) for j in range(2)])
+    ax2.set_xticklabels(
+        [f"{LABELS[m].split('-')[0]} {p}" for m in sorted(pruned_r["model"].unique()) for p in sorted(pruned_r["pattern"].unique())],
+        fontsize=8,
+        rotation=20,
+        ha="right",
+    )
     ax2.set_ylabel("Accuracy Retained (%)"); ax2.set_title("B — Accuracy Retained at 50%", fontweight="bold")
     ax2.grid(True, alpha=0.3, axis="y"); ax2.legend(fontsize=8)
 
@@ -394,7 +420,12 @@ def plot_semi_dashboard(df: pd.DataFrame, out: Path) -> None:
     ax3.bar(xs - w / 2, dense_co2, w, label="Dense (0%)", color="#7fcdbb", alpha=0.9)
     ax3.bar(xs + w / 2, pruned_co2, w, label="Pruned (50%)", color="#fd8d3c", alpha=0.9)
     ax3.set_xticks(xs)
-    ax3.set_xticklabels(["L 2:4", "L 4:8", "Q 2:4", "Q 4:8"], fontsize=9)
+    ax3.set_xticklabels(
+        [f"{LABELS[m].split('-')[0]} {p}" for m, p in combos],
+        fontsize=8,
+        rotation=20,
+        ha="right",
+    )
     ax3.set_ylabel("CO₂ (g CO₂eq)"); ax3.set_title("C — Carbon Emissions", fontweight="bold")
     ax3.legend(fontsize=8); ax3.grid(True, alpha=0.3, axis="y")
 
@@ -411,8 +442,13 @@ def plot_semi_dashboard(df: pd.DataFrame, out: Path) -> None:
             ax4.bar(x_pos, row["drop_pp"], color=PATTERN_COLORS[row["pattern"]], alpha=0.85, width=0.7)
             ax4.text(x_pos, row["drop_pp"] + 0.3, f"{row['drop_pp']:.1f}pp",
                      ha="center", va="bottom", fontsize=8)
-    ax4.set_xticks([0, 1, 3, 4])
-    ax4.set_xticklabels(["L 2:4", "L 4:8", "Q 2:4", "Q 4:8"], fontsize=9)
+    ax4.set_xticks([i * 3 + j for i in range(len(sorted(merged["model"].unique()))) for j in range(2)])
+    ax4.set_xticklabels(
+        [f"{LABELS[m].split('-')[0]} {p}" for m in sorted(merged["model"].unique()) for p in sorted(merged["pattern"].unique())],
+        fontsize=8,
+        rotation=20,
+        ha="right",
+    )
     ax4.set_ylabel("Accuracy Drop (pp)"); ax4.set_title("D — Accuracy Drop at 50%", fontweight="bold")
     ax4.grid(True, alpha=0.3, axis="y")
     ax4.legend(handles=[
@@ -432,10 +468,19 @@ def plot_semi_dashboard(df: pd.DataFrame, out: Path) -> None:
 
 def main() -> None:
     base = Path("outputs/runs")
-    structured_run = base / "mmlu_pruning_bd584ae1ae1c"
+    structured_runs = [
+        base / "mmlu_pruning_bd584ae1ae1c",
+        base / "mmlu_pruning_ce32d7e86e8a",
+    ]
     semi_runs = {
-        "2:4": base / "mmlu_pruning_dd7c17966f53",
-        "4:8": base / "mmlu_pruning_b8eefdc94e41",
+        "2:4": [
+            base / "mmlu_pruning_dd7c17966f53",
+            base / "mmlu_pruning_b52f4dda3df7",
+        ],
+        "4:8": [
+            base / "mmlu_pruning_b8eefdc94e41",
+            base / "mmlu_pruning_8ea9e2ee0643",
+        ],
     }
     struct_out = Path("outputs/plots/structured")
     semi_out = Path("outputs/plots/semi_structured")
@@ -443,7 +488,7 @@ def main() -> None:
     semi_out.mkdir(parents=True, exist_ok=True)
 
     print("=== Structured MLP plots ===")
-    df_struct = load_structured(structured_run)
+    df_struct = load_structured(structured_runs)
     plot_struct_accuracy(df_struct,                    struct_out / "accuracy_vs_sparsity.png")
     plot_struct_accuracy_retained(df_struct,           struct_out / "accuracy_retained.png")
     plot_struct_weight_vs_group_sparsity(df_struct,    struct_out / "weight_vs_group_sparsity.png")

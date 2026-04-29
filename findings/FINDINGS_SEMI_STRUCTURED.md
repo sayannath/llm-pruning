@@ -1,6 +1,6 @@
 # Findings: Global Semi-Structured N:M Magnitude Pruning on 8B LLMs
 
-**Models evaluated:** Llama-3.1-8B-Instruct · Qwen3-8B  
+**Models evaluated:** Llama-3.1-8B-Instruct · Qwen3-8B · Gemma-4-E4B-IT  
 **Benchmark:** MMLU (14,042 test examples, zero-shot choice log-probability scoring)  
 **Pruning method:** Global semi-structured N:M magnitude pruning of all `nn.Linear` weights  
 **Patterns evaluated:** 2:4 (50% sparsity) · 4:8 (50% sparsity)  
@@ -13,7 +13,7 @@
 
 ![Accuracy Bar](../outputs/plots/semi_structured/accuracy_bar.png)
 
-Both N:M patterns fix sparsity at exactly 50% — the N:M constraint forces precisely N zeros per block of M consecutive weights in each row. The 4:8 pattern consistently outperforms 2:4 on Llama, while both patterns collapse Qwen3 to near-random:
+Both N:M patterns fix sparsity at exactly 50% — the N:M constraint forces precisely N zeros per block of M consecutive weights in each row. The plots include all three models; the table below preserves the original Llama/Qwen comparison, while Gemma-4 is included in the regenerated figures.
 
 | Pattern | Model | Dense Acc | Pruned Acc (50%) | Retained |
 |---|---|---|---|---|

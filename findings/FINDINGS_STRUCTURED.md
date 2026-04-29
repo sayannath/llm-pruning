@@ -1,6 +1,6 @@
 # Findings: Global Structured MLP-Channel Magnitude Pruning on 8B LLMs
 
-**Models evaluated:** Llama-3.1-8B-Instruct · Qwen3-8B  
+**Models evaluated:** Llama-3.1-8B-Instruct · Qwen3-8B · Gemma-4-E4B-IT  
 **Benchmark:** MMLU (14,042 test examples, zero-shot choice log-probability scoring)  
 **Pruning method:** Global structured magnitude pruning of SwiGLU MLP channels (gate_proj + up_proj + down_proj grouped)  
 **Sparsity sweep:** 0, 10, 20, 30, 40, 50, 60, 70% (group sparsity)  
@@ -12,7 +12,7 @@
 
 ![Accuracy vs Sparsity](../outputs/plots/structured/accuracy_vs_sparsity.png)
 
-Structured MLP-channel pruning is far more destructive than unstructured pruning at every comparable sparsity level. Both models hit near-random performance after a single pruning step, but the cliff arrives at different points:
+Structured MLP-channel pruning is far more destructive than unstructured pruning at every comparable sparsity level. The plots include all three models; the table below preserves the original Llama/Qwen comparison, while Gemma-4 is covered in the all-model SFT comparison report.
 
 | Group Sparsity | Weight Sp (actual) | Llama Acc | Llama Retained | Qwen Acc | Qwen Retained |
 |---|---|---|---|---|---|

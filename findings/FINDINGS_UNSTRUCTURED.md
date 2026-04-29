@@ -1,10 +1,11 @@
 # Findings: Global Unstructured Magnitude Pruning on 8B LLMs
 
-**Models evaluated:** Llama-3.1-8B-Instruct · Qwen3-8B  
-**Benchmark:** MMLU (14,042 test examples, zero-shot choice log-probability scoring)  
+**Models evaluated:** Llama-3.1-8B-Instruct · Qwen3-8B · Gemma-4-E4B-IT  
+**Benchmark:** MMLU (14,042 test examples, zero-shot scoring)  
 **Pruning method:** Global unstructured magnitude pruning of all `nn.Linear` weights  
 **Sparsity sweep:** 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 95, 99%  
-**Cluster:** H100 GPU (80 GB VRAM) · Canada · tracked via CodeCarbon
+**Cluster:** H100 GPU (80 GB VRAM) · Canada · tracked via CodeCarbon  
+**Scoring:** Llama/Qwen3 use choice log-probability; Gemma-4 uses batched generation (30-token greedy decode + answer parsing) due to near-zero first-token probability on bare choice letters.
 
 ---
 
@@ -12,19 +13,24 @@
 
 ![Accuracy vs Sparsity](../outputs/plots/accuracy_vs_sparsity.png)
 
-The headline result is stark: **both models tolerate moderate sparsity surprisingly well, then catastrophically collapse at the 40→50% boundary.**
+The headline result is stark: **all three models tolerate moderate sparsity surprisingly well, then catastrophically collapse — Llama and Qwen3 at the 40→50% boundary, Gemma-4 already at 30→40%.**
 
-| Sparsity | Llama-3.1-8B | Retained | Qwen3-8B | Retained |
-|---|---|---|---|---|
-| 0% | 0.6533 | 100.0% | 0.7159 | 100.0% |
-| 10% | 0.6479 | 99.2% | 0.7161 | **100.0%** |
-| 20% | 0.6314 | 96.6% | 0.6963 | 97.3% |
-| 30% | 0.5961 | 91.2% | 0.6619 | 92.5% |
-| 40% | 0.5348 | 81.9% | 0.5632 | 78.7% |
-| **50%** | **0.3423** | **52.4%** | **0.2723** | **38.0%** |
-| 60%+ | ~0.23–0.27 | ~35–40% | ~0.23–0.27 | ~32–38% |
+| Sparsity | Llama-3.1-8B | Retained | Qwen3-8B | Retained | Gemma-4-E4B | Retained |
+|---|---|---|---|---|---|---|
+| 0% | 0.6533 | 100.0% | 0.7159 | 100.0% | 0.6652 | 100.0% |
+| 10% | 0.6479 | 99.2% | 0.7161 | **100.0%** | 0.6652 | **100.0%** |
+| 20% | 0.6314 | 96.6% | 0.6963 | 97.3% | 0.6518 | 98.0% |
+| 30% | 0.5961 | 91.2% | 0.6619 | 92.5% | 0.6142 | 92.3% |
+| **40%** | 0.5348 | 81.9% | 0.5632 | 78.7% | **0.4612** | **69.3%** |
+| **50%** | **0.3423** | **52.4%** | **0.2723** | **38.0%** | **0.2295** | **34.5%** |
+| 60% | ~0.25 | ~38% | ~0.25 | ~35% | 0.2295 | 34.5% |
+| 70% | ~0.24 | ~37% | ~0.24 | ~34% | 0.2330 | 35.0% |
+| 80% | ~0.23 | ~36% | ~0.23 | ~32% | 0.2332 | 35.1% |
+| 90% | ~0.23 | ~36% | ~0.23 | ~32% | 0.2300 | 34.6% |
+| 95% | ~0.23 | ~36% | ~0.23 | ~32% | 0.2290 | 34.4% |
+| 99% | ~0.23 | ~36% | ~0.23 | ~32% | 0.2302 | 34.6% |
 
-The degradation in the 0–40% range is gradual and smooth. At 50%, both models lose more than half their usable accuracy in a single step — crossing into near-random territory (chance = 0.25 on 4-way MCQA).
+The degradation in the 0–30% range is gradual and smooth for all models. At 40%, Gemma-4 drops sharply to 69.3% retained — a warning sign that does not appear in Llama or Qwen3 until 50%. By 50%, all three models cross into near-random territory (chance = 0.25 on 4-way MCQA).
 
 ---
 
@@ -36,28 +42,30 @@ This view normalises performance against each model's own dense baseline, making
 
 ---
 
-## 3. Key Insight — The Cliff Is at 50%, Not Later
+## 3. Key Insight — The Cliff Arrives at 50% for Llama/Qwen3, but 40% for Gemma-4
 
-Most prior work on LLM pruning (often tested on smaller models or with structured methods) places the tolerable sparsity limit at 60–70%. These experiments show the cliff arrives earlier at **50% for both 8B models** under global unstructured magnitude pruning. This matters practically:
+Most prior work on LLM pruning places the tolerable sparsity limit at 60–70%. These experiments show the cliff arrives earlier under global unstructured magnitude pruning:
 
-- **Safe zone:** ≤ 30% sparsity — both models retain > 91% accuracy
-- **Caution zone:** 30–40% — still usable but measurable degradation
-- **Collapse zone:** ≥ 50% — performance is indistinguishable from random
+| Model | Safe zone | Caution zone | Collapse |
+|---|---|---|---|
+| Llama-3.1-8B | ≤ 30% (> 91% retained) | 30–40% | ≥ 50% |
+| Qwen3-8B | ≤ 30% (> 92% retained) | 30–40% | ≥ 50% |
+| **Gemma-4-E4B** | **≤ 30% (> 92% retained)** | **30–40%** | **≥ 40%** |
 
-The shaded red region in the accuracy plot marks the 40→50% transition zone.
+Gemma-4 is the most brittle of the three: it retains only **69.3%** accuracy at 40% sparsity (vs 81.9% for Llama and 78.7% for Qwen3 at the same level). Once past 50%, all three models converge to the same near-random band (~0.23–0.25), with no meaningful difference between 50%, 95%, and 99% sparsity.
 
 ---
 
-## 4. Qwen3 Is Stronger but Fragile at the Cliff
+## 4. Model Comparison — Baseline Strength vs Pruning Robustness
 
 ![Accuracy vs Carbon Cost](../outputs/plots/accuracy_vs_co2.png)
 
-Qwen3-8B outperforms Llama-3.1-8B-Instruct by **6.3 points at baseline** (0.7159 vs 0.6533). This advantage is maintained through 30% sparsity. However:
+Qwen3-8B outperforms the other two at baseline (0.7159), while Llama and Gemma-4 are closely matched (0.6533 vs 0.6652). Key observations:
 
-- **Qwen3 at 10% sparsity scores 0.7161 — 0.0002 _higher_ than its baseline.** This is within noise, but it suggests Qwen3's weight distribution has nearly zero low-magnitude weights that contribute to output: zeroing 10% of them changes nothing.
-- **At the cliff (50%), Qwen3 collapses harder:** 38% retained vs 52% for Llama. This suggests Qwen3 concentrates its capacity more densely — it is more brittle under aggressive pruning despite being more capable at baseline.
-
-The scatter plot (above) highlights this: the two Qwen3 baseline-to-40% cluster sits visibly higher than Llama's, but the post-cliff cluster of both models merges into the same near-random band near the dashed line.
+- **All three models are immune to 10% pruning.** Qwen3 gains 0.0002 (noise), Gemma-4 gains 0.0000, Llama loses only 0.0054. Low-magnitude weights at 10% threshold contribute essentially nothing to output.
+- **At 40% sparsity, Gemma-4 drops hardest** — 69.3% retained vs 81.9% (Llama) and 78.7% (Qwen3). Gemma-4's capacity appears more concentrated in fewer high-magnitude weights, making it more sensitive to pruning at moderate levels.
+- **At the 50% cliff, Qwen3 collapses hardest** (38% retained), then Gemma-4 (34.5%), then Llama (52.4%). Despite its superior baseline, Qwen3 concentrates capacity more densely and is the most brittle under aggressive pruning.
+- **Post-cliff (50%+), all three models converge** to ~0.23–0.27, indistinguishable from one another or from random chance. Model architecture and capability no longer matter once the weight structure is sufficiently destroyed.
 
 ---
 
@@ -119,31 +127,35 @@ Steps are even-sized because each sparsity point costs roughly the same to evalu
 ### What works
 | Finding | Evidence |
 |---|---|
-| Both 8B models tolerate up to 30% sparsity with < 9% accuracy drop | Table §1 |
-| Qwen3-8B has a stronger baseline (+6.3 points over Llama) | §4 |
-| Qwen3 is immune to 10% pruning (0.0002 accuracy _gain_) | §4 |
-| Resume logic correctly recovered the failed sparsity=0 Llama run | Job 41330889 skipped sp=0 |
+| All three models tolerate up to 30% sparsity with < 9% accuracy drop | Table §1 |
+| Qwen3-8B has the strongest baseline (+6.3 pts over Llama, +5.1 pts over Gemma-4) | §4 |
+| All three models are effectively immune to 10% pruning | §4 |
+| Gemma-4-E4B at 0% sparsity (0.6652) is competitive with Llama-3.1-8B (0.6533) | Table §1 |
 
 ### What breaks down
 | Finding | Evidence |
 |---|---|
-| 50% sparsity triggers catastrophic collapse in both models | Table §1, accuracy plot |
-| Qwen3 collapses harder at 50% (38% retained vs 52% for Llama) | §4 |
+| Gemma-4 collapses earlier: 40% sparsity retains only 69.3% vs 82% for Llama | Table §1, §3 |
+| 50% sparsity triggers catastrophic collapse in all three models | Table §1 |
+| Qwen3 collapses hardest at 50% (38% retained) despite strongest baseline | §4 |
+| Post-cliff (50%+) all models converge to ~0.23–0.25, indistinguishable from random | Table §1 |
 | Carbon cost is flat across sparsities — no green inference benefit | §5, §6 |
-| Post-cliff accuracy (60%+) is near-random and non-monotonic | Table §1 |
 
 ### Practical recommendations
-1. **If pruning for deployment**, stop at ≤ 30% — both models remain strongly usable.
-2. **40% is a caution threshold** — Llama retains 82%, Qwen3 retains 79%, but further pruning risks cliff.
+1. **If pruning for deployment**, stop at ≤ 30% — all three models remain strongly usable (> 91% retained).
+2. **For Gemma-4, treat 30% as the hard limit** — the extra brittleness at 40% (69% retained) makes it riskier than Llama or Qwen3 at the same level.
 3. **Do not prune past 40%** without fine-tuning / distillation recovery; 50%+ is effectively model destruction under this method.
-4. **Prefer Qwen3-8B at low sparsity** (higher absolute accuracy); **prefer Llama-3.1-8B at 40–50%** (more graceful degradation).
+4. **Prefer Qwen3-8B at low sparsity** (highest absolute accuracy); **prefer Llama-3.1-8B at 40%** (most graceful degradation); **avoid Gemma-4 at 40%+** under unstructured pruning.
 5. **For real inference carbon savings**, switch to structured or N:M sparsity patterns that sparse kernels can exploit.
 
 ---
 
 ## Reproducibility
 
-All artifacts are saved under `outputs/runs/mmlu_pruning_ade7d5ffbbb4/`:
+Artifacts are saved under the following run directories:
+- **Llama-3.1-8B + Qwen3-8B:** `outputs/runs/mmlu_pruning_ade7d5ffbbb4/`
+- **Gemma-4-E4B-IT:** `outputs/runs/mmlu_pruning_39fc35ec1838/`
+
 
 ```
 <model>/sparsity_<XYZ>/
